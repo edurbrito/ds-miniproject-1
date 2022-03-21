@@ -10,13 +10,13 @@ if [[ -f ./env/bin/python3 ]]
 then
 echo "Installing the requirements..."
 ./env/bin/pip3 install -r ./requirements.txt
-echo "Starting the program..."
+echo "Starting the client..."
 ./env/bin/python3 ./src $1
 else 
 echo "Creating a virtual env..."
 python3 -m venv env
 echo "Installing the requirements..."
 ./env/bin/pip3 install -r ./requirements.txt
-echo "Starting the program..."
+echo "Starting the client..."
 ./env/bin/python3 ./src $1
 fi

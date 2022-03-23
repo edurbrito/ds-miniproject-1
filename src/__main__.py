@@ -4,7 +4,7 @@ import readline  # for key up support
 from utils import *
 
 if len(sys.argv) != 2 or not sys.argv[1].isnumeric() or int(sys.argv[1]) < 1:
-    print("Usage:  ricartagrawla.sh [N]\n\tN\tnumber of processes (N > 0)")
+    print("Usage:  ./client.sh [N]\n\tN\tnumber of processes (N > 0)")
     exit(1)
 
 conn = rpyc.connect("localhost", 18812)

@@ -56,25 +56,32 @@ class MonitorService(rpyc.Service):
         sender = self.processes[id]
 
         for key, value in self.processes.items():
+            sender.timestamp += 1
             if key != id:
                 reply = value.handle_message((sender.timestamp, id))
                 sender.replies[key] = reply
 
         self.check_replies(sender)
 
-    def check_replies(self, sender):
-        if all(sender.replies.values()):
-            sender.state = HELD
-            self.critical_section.assign_process(sender)
-            sender.replies = {}
+    def check_replies(self, process):
+        if all(process.replies.values()):
+            process.state = HELD
+            self.critical_section.assign_process(process)
+            process.replies = {}
 
     def handle_queued_processes(self, data):
         queue, releaser_id = data
         while len(queue) != 0:
+            sender = self.processes[releaser_id]
+            sender.timestamp += 1
+
             _, id = queue.pop(0)
-            sender = self.processes[id]
-            sender.replies[releaser_id] = "OK"
-            self.check_replies(sender)
+
+            receiver = self.processes[id]
+            receiver.replies[releaser_id] = "OK"
+            receiver.adjust_timestamp(sender.timestamp)
+
+            self.check_replies(receiver)
 
 
 

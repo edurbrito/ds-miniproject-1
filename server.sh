@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 
 if [[ -f ./env/bin/python3 ]]
 then

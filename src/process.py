@@ -10,7 +10,7 @@ class Process(threading.Thread):
         self.id = id
         self.state = DO_NOT_WANT
         self.timeout = 5
-        self.timestamp = 1
+        self.timestamp = 0
         self.event_observer = event_observer
         self.queue = []
         self.replies = {}
@@ -37,10 +37,12 @@ class Process(threading.Thread):
     def set_wanted_state(self):
         if self.state == DO_NOT_WANT:
             self.state = WANTED
+            self.timestamp += 1
             self.event_observer.notify("onSetWantedState", self.id)
 
     def release(self):
         self.state = DO_NOT_WANT
+        self.timestamp += 1
         self.event_observer.notify("onRelease", (self.queue, self.id))
 
     def run(self):
@@ -50,6 +52,7 @@ class Process(threading.Thread):
     
     def handle_message(self, message):
         timestamp, _ = message
+        self.adjust_timestamp(timestamp)
         if self.state == DO_NOT_WANT:
             return "OK"
         elif self.state == HELD:
@@ -61,3 +64,6 @@ class Process(threading.Thread):
             else:
                 self.queue.append(message)
                 return None  
+
+    def adjust_timestamp(self, timestamp):
+        self.timestamp = max(self.timestamp, timestamp) + 1 

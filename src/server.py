@@ -3,6 +3,8 @@ from rpyc.utils.server import ThreadedServer
 import datetime
 from critical_section import CriticalSection
 from process import Process
+from event_observer import EventObserver
+from __env__ import *
 
 
 class MonitorService(rpyc.Service):
@@ -12,6 +14,9 @@ class MonitorService(rpyc.Service):
         super().__init__()
         self.critical_section = CriticalSection()
         self.processes = {}
+        self.event_observer = EventObserver()
+        self.event_observer.subscribe('onSetWantedState', self.request_access)
+        self.event_observer.subscribe('onRelease', self.handle_queued_processes)
 
     def get_event_time(self, event):
         return "{} on {}".format(event, datetime.datetime.now())
@@ -24,7 +29,7 @@ class MonitorService(rpyc.Service):
 
     def exposed_start(self, N):
         for i in range(1, int(N)+1):
-            p = Process(i)
+            p = Process(i, self.event_observer)
             p.start()
             self.processes[i] = p
 
@@ -37,15 +42,40 @@ class MonitorService(rpyc.Service):
     def exposed_time_cs(self, t):
         if t >= 10:
             self.critical_section.set_timeout(t)
-            return f"Timeout for CS changed to [{10}, {t}]."
+            return f"Timeout interval for CS changed to [{10}, {t}]."
         return "Invalid t"
 
     def exposed_time_p(self, t):
         if t >= 5:
             for p in self.processes:
                 self.processes[p].set_timeout(t)
-            return f"Timeout for CS changed [{5}, {t}]."
+            return f"Timeout interval for processes changed [{5}, {t}]."
         return "Invalid t"
+    
+    def request_access(self, id):
+        sender = self.processes[id]
+
+        for key, value in self.processes.items():
+            if key != id:
+                reply = value.handle_message((sender.timestamp, id))
+                sender.replies[key] = reply
+
+        self.check_replies(sender)
+
+    def check_replies(self, sender):
+        if all(sender.replies.values()):
+            sender.state = HELD
+            self.critical_section.assign_process(sender)
+            sender.replies = {}
+
+    def handle_queued_processes(self, data):
+        queue, releaser_id = data
+        while len(queue) != 0:
+            _, id = queue.pop(0)
+            sender = self.processes[id]
+            sender.replies[releaser_id] = "OK"
+            self.check_replies(sender)
+
 
 
 if __name__ == '__main__':

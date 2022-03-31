@@ -4,12 +4,11 @@
 
 ### Instructions
 
-In two separated terminals:
-1. Start the server:
-`./server.sh`
-
-2. Run the client:
-`./client.sh <N>`
+Run the following command:
+```
+run.sh <N>
+            N   number of processes (N > 0)
+```
 
 ### Group
 

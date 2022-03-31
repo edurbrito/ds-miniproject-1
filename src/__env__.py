@@ -5,11 +5,11 @@ LIST = (
 )
 TIME_CS = (
     "time-cs",
-    "time-cs <t>\tt : interval timeout for accessing the CS (t > 10)"
+    "time-cs <t>\tt : interval timeout for accessing the CS (t >= 10)"
 )
 TIME_P = (
     "time-p",
-    "time-p <t>\tt : interval timeout for moving between states (t > 5)"
+    "time-p <t>\tt : interval timeout for moving between states (t >= 5)"
 )
 EXIT = (
     "exit",
@@ -27,3 +27,6 @@ COMMANDS = {
 DO_NOT_WANT = "DO-NOT-WANT"
 WANTED = "WANTED"
 HELD = "HELD"
+
+# PORT
+PORT = 18812

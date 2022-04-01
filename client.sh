@@ -1,8 +1,8 @@
-#! /bin/sh
+#!/bin/bash
 
 re='^[+-]?[0-9]+([.][0-9]+)?$'
 if ! [[ "$1" =~ $re ]] || [ -z "$1" -o $1 -lt 1 ]; then
-printf "Usage:  ricartagrawla.sh [N]\n\tN\tnumber of processes (N > 0)\n"
+printf "Usage:  ./client.sh [N]\n\tN\tnumber of processes (N > 0)\n"
 exit 1
 fi
 

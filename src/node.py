@@ -17,9 +17,8 @@ class Node(Process):
         self.port = port
 
         self.state = DO_NOT_WANT
-        self.timeout_cs = (10, 15)
-        self.cs_holding_time = 10
-        self.timeout_p = (5, 9)
+        self.timeout_cs = (10, 10)
+        self.timeout_p = (5, 5)
         self.timestamp = 0
 
         self.queue = []

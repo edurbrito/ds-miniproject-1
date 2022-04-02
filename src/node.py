@@ -96,7 +96,6 @@ class Node(Process):
         elif self.state == HELD:
             self.queue.append(_message)
         elif self.state == WANTED:
-            print(self.port, _from)
             if self.timestamp > timestamp or (self.timestamp == timestamp and self.port > _from):
                 self.increment_timestamp()
                 self.respond(_to=_from, _response=OK)

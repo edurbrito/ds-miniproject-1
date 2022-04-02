@@ -13,7 +13,7 @@ if len(sys.argv) != 2 or not sys.argv[1].isnumeric() or int(sys.argv[1]) < 1:
     exit(1)
 
 
-basicConfig(filename="./log.out", filemode="w", level=DEBUG)
+basicConfig(filename="./log.out", filemode="w", level=INFO)
 
 
 N = int(sys.argv[1])

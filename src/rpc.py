@@ -1,5 +1,4 @@
-
-from logging import CRITICAL, DEBUG, ERROR, INFO, info, exception
+from logging import exception
 
 import rpyc
 
@@ -23,32 +22,14 @@ class RPCService(rpyc.Service):
         return bool(self.node.set_timeout_p(t))
 
     def exposed_handle_message(self, _from, _message):
-        with self.node.lock:
-            self.node.handle_message(_message)
-            info(msg=f"RECEIVED FROM {_from} TO {self.port}")
-
-    def exposed_handle_response(self, _from, _response):
-        with self.node.lock:
-            self.node.handle_response(_from, _response)
-            info(
-                msg=f"RESPONSE {_response} RECEIVED FROM {_from} TO {self.port}")
+        return self.node.handle_message(_message)
 
     def send_message(self, _to, _message):
         try:
             conn = rpyc.connect("localhost", _to)
-            info(msg=f"SENT FROM {self.port} TO {_to}")
-            conn.root.handle_message(self.port, _message)
+            conn._config['sync_request_timeout'] = 5
+            response = conn.root.handle_message(self.port, _message)
             conn.close()
-        except:
-            info(msg=f"NOT SENT FROM {self.port} TO {_to}")
-
-    def respond(self, _to, _response):
-        try:
-            conn = rpyc.connect("localhost", _to)
-            info(msg=f"RESPONSE {_response} SENT FROM {self.port} TO {_to}")
-            conn.root.handle_response(self.port, _response)
-            conn.close()
+            return response
         except Exception as e:
-            info(
-                msg=f"RESPONSE {_response} WAS NOT SENT FROM {self.port} TO {_to}")
             exception(e)

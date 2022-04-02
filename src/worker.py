@@ -1,8 +1,9 @@
 from logging import CRITICAL, DEBUG, ERROR, INFO, debug
 from threading import Thread
 from time import sleep
+import random
 
-from __env__ import DO_NOT_WANT, HELD, PORT
+from __env__ import DO_NOT_WANT, HELD, PORT, WANTED
 
 
 class Worker(Thread):
@@ -11,17 +12,19 @@ class Worker(Thread):
         self.node = node
         super().__init__()
 
+    @staticmethod
+    def get_timeout(interval):
+        return random.randint(interval[0], interval[1])
+
     def run(self):
         while True:
-            sleep(3)
+            sleep(self.get_timeout(self.node.timeout_p))
 
             with self.node.lock:
                 debug(msg=f"{str(self.node)} : " + str(self.node.queue))
 
-            _to = (self.node.id % self.node.n_processes) + PORT
+            self.node.set_wanted_state()
 
-            self.node.send_message(_to, "HELLO")
-
-            self.node.set_state(HELD)
-
-            self.node.increment_timestamp()
+            if self.node.state == HELD:
+                sleep(self.get_timeout(self.node.timeout_cs))
+                self.node.release()

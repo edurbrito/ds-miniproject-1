@@ -1,4 +1,5 @@
 from multiprocessing import Process
+from threading import Condition
 
 from rpyc.utils.server import ThreadedServer
 
@@ -24,6 +25,7 @@ class Node(Process):
         self.replies = {}
         self.n_processes = n_processes
 
+        self.cv = Condition()
         self.rpc_service = RPCService(self)
         self.worker = Worker(self)
 
@@ -63,7 +65,9 @@ class Node(Process):
                     self.replies[port] = self.send_message(
                         port, (TIMESTAMP, self.timestamp, self.port))
 
-        if len(self.replies) == self.n_processes - 1 and all(self.replies.values()):
+        with self.cv:
+            while not (len(self.replies) == self.n_processes - 1 and all(self.replies.values())):
+                self.cv.wait()
             self.state = HELD
             self.increment_timestamp()
             self.replies = {}
@@ -71,8 +75,10 @@ class Node(Process):
     def handle_message(self, _message):
         type = _message[0]
         if type == RELEASE:
-            _from = _message[1]
-            self.replies[_from] = OK
+            with self.cv:
+                _from = _message[1]
+                self.replies[_from] = OK
+                self.cv.notify_all()
         elif type == TIMESTAMP:
             timestamp, _from = _message[1], _message[2]
             if self.state == DO_NOT_WANT:
